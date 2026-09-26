@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>美股个股信息流推荐 · 医药实时催化</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--line:#dce3ec;--text:#1f2d3d;--muted:#718096;--green:#0f9f62;--red:#e23b4f;--amber:#d97706;--blue:#2563eb;--soft:#eef4ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+a{color:inherit}
+.topbar{height:42px;display:flex;align-items:center;gap:16px;padding:0 14px;background:#fff;border-bottom:1px solid var(--line);font-weight:700}
+.brand{color:#203044}.nav{display:flex;gap:10px;align-items:center}.nav a{text-decoration:none;color:#506176}.nav a.active{color:#0b7a49}.discipline{margin-left:8px;padding:5px 9px;border-radius:5px;background:#fff1f1;color:#e03131;font-size:12px}.live{margin-left:auto;color:#0f9f62;font-weight:800}
+.wrap{padding:14px}.title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:12px}
+h1{margin:0;font-size:22px}.sub{margin-top:6px;color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 11px;cursor:pointer}.btn:hover{border-color:#9db0c5}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.metric{background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 13px}.metric b{display:block;font-size:18px;margin-top:3px}.metric small{color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:12px}
+.filter{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;cursor:pointer;color:#526273}.filter.active{background:#eef6ff;border-color:#8bb8f5;color:#1d5faf;font-weight:800}
+.watch{margin-left:auto;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.panel h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:820px}th,td{padding:10px 11px;border-bottom:1px solid #edf1f5;text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);background:#fafbfc;white-space:nowrap}
+.ticker{font-weight:900;font-size:15px}.tag{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}.good{background:#e9f8f0;color:#08784b}.risk{background:#fff0f2;color:#c92e43}.watching{background:#fff7e7;color:#a75b00}.indirect{background:#edf3ff;color:#335fa8}
+.src{color:var(--blue);text-decoration:none;font-weight:700}.src:hover{text-decoration:underline}.event{font-weight:700;line-height:1.45}.why{margin-top:4px;color:#69798b;line-height:1.45;font-size:12px}
+.cards{padding:12px;display:grid;gap:9px}.stock{border:1px solid var(--line);border-radius:8px;padding:11px}.stock-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.stock-name{font-weight:900}.stock-meta{margin-top:7px;color:var(--muted);font-size:12px;line-height:1.55}
+.empty{padding:26px 16px;text-align:center;color:var(--muted)}
+.footer{padding:12px 2px 4px;color:#7c8998;font-size:12px;line-height:1.6}
+@media(max-width:980px){.metrics{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.watch{width:100%;margin:0}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">趋势</span>
+  <div class="nav"><a href="index.html">趋势逻辑 WATCH</a><a class="active" href="biomed.html">🧬 医药信息流</a></div>
+  <span class="discipline">严格执行交易纪律 祝顺风顺水顺财神</span>
+  <span id="live" class="live">● 实时连接</span>
+</div>
+
+<main class="wrap">
+  <div class="title-row">
+    <div>
+      <h1>🔴 美股个股信息流推荐 · 医药实时催化</h1>
+      <div class="sub">仅跟踪医药 / 生物科技 / AI制药 / AI医疗器械；排除纯科技类股票。优先官方一手来源。</div>
+    </div>
+    <button id="refresh" class="btn">重新同步</button>
+  </div>
+
+  <section class="metrics">
+    <div class="metric"><small>监控标的</small><b id="watchCount">2</b></div>
+    <div class="metric"><small>今日新催化</small><b id="todayCount">0</b></div>
+    <div class="metric"><small>直接利好</small><b id="goodCount" style="color:var(--green)">0</b></div>
+    <div class="metric"><small>融资 / 稀释风险</small><b id="riskCount" style="color:var(--red)">0</b></div>
+  </section>
+
+  <div class="toolbar">
+    <button class="filter active" data-filter="all">全部</button>
+    <button class="filter" data-filter="good">🟢 直接利好</button>
+    <button class="filter" data-filter="risk">🔴 融资风险</button>
+    <button class="filter" data-filter="FDA">FDA / 监管</button>
+    <button class="filter" data-filter="SEC">SEC</button>
+    <button class="filter" data-filter="clinical">临床</button>
+    <button class="filter" data-filter="commercial">合作 / 商业化</button>
+    <span class="watch">自动刷新：60秒 · 数据文件：biomed-data.json</span>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>① 最新实质催化</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>时间</th><th>股票</th><th>类型</th><th>事件内容</th><th>判断</th><th>官方来源</th></tr></thead>
+          <tbody id="events"></tbody>
+        </table>
+        <div id="empty" class="empty">当前没有新的实质催化。出现 FDA / SEC / 临床 / 合作 / 融资信息后将在这里显示。</div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <h2>② 当前重点监控</h2>
+      <div id="stocks" class="cards"></div>
+    </aside>
+  </div>
+
+  <div class="footer">
+    监控原则：只显示可能影响股价的实质信息；融资、ATM、S-3、424B5、权证等稀释风险醒目标记；行业新闻只有与公司存在明确直接关系时才纳入。页面本体已完成，下一步接入 SEC / FDA / 公司 IR 自动数据。
+  </div>
+</main>
+
+<script>
+let DATA={watchlist:[],events:[],updated_at:null},activeFilter="all";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function badge(e){
+  const k=e.sentiment||"watching";
+  const map={good:["🟢 直接利好","good"],risk:["🔴 风险","risk"],indirect:["🟦 间接催化","indirect"],watching:["🟡 观察","watching"]};
+  const x=map[k]||map.watching; return '<span class="tag '+x[1]+'">'+x[0]+'</span>';
+}
+function typeBadge(t){
+  const cls=t==="SEC"?"risk":(t==="FDA"?"good":"watching");
+  return '<span class="tag '+cls+'">'+esc(t||"其他")+'</span>';
+}
+function visible(e){
+  if(activeFilter==="all")return true;
+  if(["good","risk"].includes(activeFilter))return e.sentiment===activeFilter;
+  if(activeFilter==="commercial")return ["合作","商业化","订单","医院采用"].includes(e.category);
+  if(activeFilter==="clinical")return ["临床","试验数据"].includes(e.category);
+  return e.type===activeFilter;
+}
+function render(){
+  const ev=(DATA.events||[]).filter(visible);
+  $("#events").innerHTML=ev.map(e=>`<tr>
+    <td>${esc(e.time||"—")}</td>
+    <td><span class="ticker">${esc(e.ticker)}</span></td>
+    <td>${typeBadge(e.type)}</td>
+    <td><div class="event">${esc(e.title)}</div><div class="why">${esc(e.why||"")}</div></td>
+    <td>${badge(e)}</td>
+    <td>${e.source_url?'<a class="src" target="_blank" rel="noopener" href="'+esc(e.source_url)+'">'+esc(e.source_name||"官方原文")+'</a>':"—"}</td>
+  </tr>`).join("");
+  $("#empty").style.display=ev.length?"none":"block";
+  $("#stocks").innerHTML=(DATA.watchlist||[]).map(s=>`<div class="stock">
+    <div class="stock-head"><div><span class="stock-name">${esc(s.ticker)}</span> · ${esc(s.name)}</div><span class="tag watching">监控中</span></div>
+    <div class="stock-meta">${esc(s.focus||"FDA / SEC / 临床 / 合作 / 商业化 / 融资稀释")}</div>
+  </div>`).join("");
+  $("#watchCount").textContent=(DATA.watchlist||[]).length;
+  const today=new Date().toISOString().slice(0,10);
+  const todays=(DATA.events||[]).filter(e=>String(e.time||"").startsWith(today));
+  $("#todayCount").textContent=todays.length;
+  $("#goodCount").textContent=todays.filter(e=>e.sentiment==="good").length;
+  $("#riskCount").textContent=todays.filter(e=>e.sentiment==="risk").length;
+  $("#live").textContent="● 已同步"+(DATA.updated_at?" · "+DATA.updated_at:"");
+}
+async function load(){
+  $("#live").textContent="● 同步中";
+  try{
+    const r=await fetch("biomed-data.json?ts="+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw Error("HTTP "+r.status);
+    DATA=await r.json();render();
+  }catch(e){$("#live").textContent="● 数据读取失败";console.error(e)}
+}
+document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeFilter=b.dataset.filter;render()});
+$("#refresh").onclick=load;
+load();setInterval(load,60000);
+</script>
+</body></html>
